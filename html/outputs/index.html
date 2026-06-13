@@ -3,19 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>双栏笔记</title>
+  <title>番茄钟</title>
   <style>
     :root {
       color-scheme: light;
-      --bg: #f6f7f9;
+      --bg: #f5f7fb;
       --panel: #ffffff;
-      --text: #172033;
-      --muted: #6b7280;
-      --line: #e5e7eb;
-      --primary: #2563eb;
-      --primary-weak: #e8f0ff;
-      --danger: #dc2626;
-      --shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+      --text: #162033;
+      --muted: #657086;
+      --line: #dfe5ef;
+      --primary: #e5484d;
+      --primary-dark: #c7353b;
+      --primary-weak: #fff0f1;
+      --accent: #2563eb;
+      --success: #17803d;
+      --warning: #b45309;
+      --shadow: 0 18px 48px rgba(20, 31, 54, 0.1);
     }
 
     * {
@@ -25,15 +28,14 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: var(--bg);
+      background: linear-gradient(135deg, #fff7f7 0%, var(--bg) 45%, #edf4ff 100%);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
         "Microsoft YaHei", sans-serif;
     }
 
     button,
-    input,
-    textarea {
+    input {
       font: inherit;
     }
 
@@ -44,214 +46,338 @@
 
     .app {
       display: grid;
-      grid-template-columns: minmax(260px, 34%) 1fr;
+      grid-template-columns: minmax(320px, 1fr) minmax(300px, 420px);
+      gap: 22px;
+      width: min(1120px, calc(100% - 32px));
       min-height: 100vh;
+      margin: 0 auto;
+      padding: 28px 0;
     }
 
-    .sidebar {
+    .timer-panel,
+    .side-panel {
+      border: 1px solid rgba(223, 229, 239, 0.9);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .timer-panel {
       display: flex;
-      flex-direction: column;
       min-width: 0;
-      background: var(--panel);
-      border-right: 1px solid var(--line);
-    }
-
-    .side-header {
-      display: grid;
-      gap: 14px;
-      padding: 20px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .brand-row {
-      display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: space-between;
-      gap: 12px;
+      padding: 28px;
     }
 
-    h1 {
-      margin: 0;
-      font-size: 22px;
-      line-height: 1.2;
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
     }
 
     .title-block {
       display: grid;
-      gap: 5px;
+      gap: 7px;
       min-width: 0;
     }
 
-    .note-count {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.3;
+    h1,
+    h2 {
+      margin: 0;
+      line-height: 1.2;
     }
 
-    .new-note {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
+    h1 {
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 18px;
+    }
+
+    .subtitle,
+    .helper,
+    .stats,
+    .task-meta {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .subtitle {
+      max-width: 560px;
+      font-size: 15px;
+    }
+
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      width: min(100%, 460px);
+      margin-top: 30px;
       border-radius: 8px;
+      background: #eef2f7;
+      padding: 6px;
+    }
+
+    .mode-tab {
+      min-height: 42px;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .mode-tab[aria-pressed="true"] {
+      background: var(--panel);
+      color: var(--primary);
+      box-shadow: 0 6px 16px rgba(20, 31, 54, 0.09);
+    }
+
+    .clock-wrap {
+      display: grid;
+      justify-items: center;
+      gap: 22px;
+      margin: 34px 0 28px;
+      text-align: center;
+    }
+
+    .progress-ring {
+      display: grid;
+      place-items: center;
+      width: min(62vw, 360px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        conic-gradient(var(--primary) var(--progress, 0deg), #ebeff5 0),
+        #ebeff5;
+    }
+
+    .clock-face {
+      display: grid;
+      place-items: center;
+      width: calc(100% - 30px);
+      height: calc(100% - 30px);
+      border-radius: 50%;
+      background: var(--panel);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+
+    .time {
+      font-size: clamp(58px, 11vw, 104px);
+      font-variant-numeric: tabular-nums;
+      font-weight: 850;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    .status {
+      min-height: 26px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .button {
+      min-width: 112px;
+      min-height: 46px;
+      border-radius: 8px;
+      padding: 0 18px;
+      background: #eef2f7;
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .button.primary {
+      min-width: 146px;
       background: var(--primary);
       color: white;
+      box-shadow: 0 10px 22px rgba(229, 72, 77, 0.22);
+    }
+
+    .button.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .button.ghost {
+      background: transparent;
+      color: var(--muted);
+      outline: 1px solid var(--line);
+    }
+
+    .focus-card {
+      display: grid;
+      gap: 8px;
+      margin-top: 20px;
+      border-radius: 8px;
+      background: var(--primary-weak);
+      padding: 16px;
+    }
+
+    .focus-label {
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .focus-task {
+      overflow-wrap: anywhere;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .side-panel {
+      display: grid;
+      align-content: start;
+      gap: 18px;
+      min-width: 0;
+      padding: 22px;
+    }
+
+    .section {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stats-grid,
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat,
+    .setting {
+      display: grid;
+      gap: 5px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      padding: 12px;
+    }
+
+    .stat strong {
       font-size: 24px;
       line-height: 1;
     }
 
-    .search {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 11px 12px;
-      color: var(--text);
-      outline: none;
-      background: #fbfcfe;
-    }
-
-    .search:focus,
-    .title-input:focus,
-    .body-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-    }
-
-    .notes-list {
-      display: grid;
-      align-content: start;
-      gap: 8px;
-      overflow: auto;
-      padding: 14px;
-    }
-
-    .note-item {
-      display: grid;
-      gap: 6px;
-      width: 100%;
-      min-width: 0;
-      padding: 12px;
-      border-radius: 8px;
-      background: transparent;
-      color: var(--text);
-      text-align: left;
-    }
-
-    .note-item:hover {
-      background: #f3f6fb;
-    }
-
-    .note-item.active {
-      background: var(--primary-weak);
-      outline: 1px solid rgba(37, 99, 235, 0.18);
-    }
-
-    .note-title {
-      overflow: hidden;
-      font-weight: 700;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .note-preview,
-    .note-date {
-      overflow: hidden;
+    .stat span,
+    .setting label {
       color: var(--muted);
-      font-size: 13px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .editor {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      padding: 28px;
-    }
-
-    .editor-panel {
-      display: flex;
-      flex: 1;
-      min-height: 0;
-      flex-direction: column;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: var(--shadow);
-    }
-
-    .editor-toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .status {
-      min-width: 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .delete-note {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 88px;
-      border-radius: 8px;
-      padding: 9px 12px;
-      background: #fee2e2;
-      color: var(--danger);
-      font-weight: 700;
-    }
-
-    .delete-note:disabled {
-      cursor: not-allowed;
-      opacity: 0.45;
-    }
-
-    .editor-fields {
-      display: flex;
-      flex: 1;
-      min-height: 0;
-      flex-direction: column;
-      gap: 14px;
-      padding: 18px;
-    }
-
-    .title-input {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 13px 14px;
-      color: var(--text);
-      font-size: 22px;
+      font-size: 12px;
       font-weight: 750;
+    }
+
+    .setting input,
+    .task-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--text);
       outline: none;
     }
 
-    .body-input {
-      flex: 1;
-      width: 100%;
-      min-height: 300px;
-      resize: none;
+    .setting input {
+      padding: 9px 8px;
+    }
+
+    .task-input {
+      min-height: 44px;
+      padding: 10px 12px;
+    }
+
+    .setting input:focus,
+    .task-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.13);
+    }
+
+    .task-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 14px;
-      color: var(--text);
-      line-height: 1.65;
-      outline: none;
+      background: #fbfcfe;
+      padding: 10px;
+    }
+
+    .task-item.active {
+      border-color: rgba(229, 72, 77, 0.45);
+      background: var(--primary-weak);
+    }
+
+    .task-toggle {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: #e8edf5;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .task-item.done .task-toggle {
+      background: #dcfce7;
+      color: var(--success);
+    }
+
+    .task-title {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-weight: 750;
+    }
+
+    .task-item.done .task-title {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-button {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #eef2f7;
+      color: var(--muted);
+      font-weight: 900;
     }
 
     .empty {
-      display: grid;
-      flex: 1;
-      place-items: center;
-      padding: 24px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 16px;
       color: var(--muted);
       text-align: center;
     }
@@ -260,252 +386,505 @@
       display: none;
     }
 
-    @media (max-width: 760px) {
+    @media (max-width: 860px) {
       .app {
+        grid-template-columns: 1fr;
+        width: min(100% - 24px, 680px);
+        padding: 12px 0;
+      }
+
+      .timer-panel,
+      .side-panel {
+        padding: 18px;
+      }
+
+      .topbar,
+      .task-form {
         grid-template-columns: 1fr;
       }
 
-      .sidebar {
-        min-height: 42vh;
-        border-right: 0;
-        border-bottom: 1px solid var(--line);
+      .topbar {
+        display: grid;
       }
 
-      .editor {
-        min-height: 58vh;
-        padding: 16px;
+      .stats-grid,
+      .settings-grid {
+        grid-template-columns: 1fr;
       }
 
-      .title-input {
-        font-size: 19px;
+      .progress-ring {
+        width: min(78vw, 320px);
       }
     }
   </style>
 </head>
 <body>
   <main class="app">
-    <aside class="sidebar" aria-label="笔记列表">
-      <header class="side-header">
-        <div class="brand-row">
+    <section class="timer-panel" aria-label="番茄钟计时器">
+      <div>
+        <header class="topbar">
           <div class="title-block">
-            <h1>我的笔记</h1>
-            <div class="note-count" data-testid="note-count">共 0 条笔记</div>
+            <h1>番茄钟</h1>
+            <div class="subtitle">专注一段时间，休息一下，再继续。默认 25 分钟专注、5 分钟短休息、15 分钟长休息。</div>
           </div>
-          <button class="new-note" type="button" data-testid="new-note" aria-label="新建笔记">+</button>
-        </div>
-        <input class="search" data-testid="search" type="search" placeholder="搜索标题或内容">
-      </header>
-      <section class="notes-list" data-testid="notes-list" aria-live="polite"></section>
-    </aside>
+          <div class="stats" data-testid="cycle-label">第 1 轮</div>
+        </header>
 
-    <section class="editor" aria-label="笔记内容">
-      <div class="editor-panel">
-        <div class="editor-toolbar">
-          <div class="status" data-testid="status">已自动保存</div>
-          <button class="delete-note" type="button" data-testid="delete-note">删除</button>
+        <nav class="mode-tabs" aria-label="计时模式">
+          <button class="mode-tab" type="button" data-mode="work" data-testid="mode-work" aria-pressed="true">专注</button>
+          <button class="mode-tab" type="button" data-mode="short" data-testid="mode-short" aria-pressed="false">短休息</button>
+          <button class="mode-tab" type="button" data-mode="long" data-testid="mode-long" aria-pressed="false">长休息</button>
+        </nav>
+
+        <div class="clock-wrap">
+          <div class="progress-ring" data-testid="progress-ring" aria-hidden="true">
+            <div class="clock-face">
+              <div class="time" data-testid="time">25:00</div>
+            </div>
+          </div>
+          <div class="status" data-testid="status" aria-live="polite">准备开始专注。</div>
+          <div class="controls">
+            <button class="button primary" type="button" data-testid="start-pause">开始</button>
+            <button class="button" type="button" data-testid="reset">重置</button>
+            <button class="button ghost" type="button" data-testid="skip">跳过</button>
+          </div>
         </div>
-        <form class="editor-fields" data-testid="editor-form">
-          <input class="title-input" data-testid="title-input" type="text" placeholder="笔记标题" autocomplete="off">
-          <textarea class="body-input" data-testid="body-input" placeholder="开始记录..."></textarea>
-        </form>
-        <div class="empty hidden" data-testid="empty-state">没有选中的笔记，点击左上角 + 新建一条。</div>
+      </div>
+
+      <div class="focus-card">
+        <div class="focus-label">当前任务</div>
+        <div class="focus-task" data-testid="focus-task">还没有任务，添加一个要完成的小目标。</div>
       </div>
     </section>
+
+    <aside class="side-panel" aria-label="番茄钟设置和任务">
+      <section class="section" aria-label="今日统计">
+        <h2>今日统计</h2>
+        <div class="stats-grid">
+          <div class="stat">
+            <strong data-testid="completed-count">0</strong>
+            <span>完成番茄</span>
+          </div>
+          <div class="stat">
+            <strong data-testid="focus-minutes">0</strong>
+            <span>专注分钟</span>
+          </div>
+          <div class="stat">
+            <strong data-testid="done-count">0</strong>
+            <span>完成任务</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-label="时长设置">
+        <h2>时长设置</h2>
+        <div class="settings-grid">
+          <div class="setting">
+            <label for="work-minutes">专注</label>
+            <input id="work-minutes" data-testid="setting-work" type="number" min="1" max="180" value="25" inputmode="numeric">
+          </div>
+          <div class="setting">
+            <label for="short-minutes">短休</label>
+            <input id="short-minutes" data-testid="setting-short" type="number" min="1" max="60" value="5" inputmode="numeric">
+          </div>
+          <div class="setting">
+            <label for="long-minutes">长休</label>
+            <input id="long-minutes" data-testid="setting-long" type="number" min="1" max="90" value="15" inputmode="numeric">
+          </div>
+        </div>
+        <div class="helper">修改当前模式的时长会立即重置该模式计时。</div>
+      </section>
+
+      <section class="section" aria-label="任务清单">
+        <h2>任务清单</h2>
+        <form class="task-form" data-testid="task-form">
+          <input class="task-input" data-testid="task-input" type="text" placeholder="添加任务，例如：整理需求" autocomplete="off">
+          <button class="button" type="submit" data-testid="add-task">添加</button>
+        </form>
+        <ul class="task-list" data-testid="task-list"></ul>
+        <div class="empty" data-testid="empty-tasks">清单为空。先写下这轮要推进的事。</div>
+      </section>
+    </aside>
   </main>
 
   <script>
     (() => {
-      const storageKey = "twoPaneNotes.v1";
-      const emptyNote = () => ({
-        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-        title: "未命名笔记",
-        body: "",
-        updatedAt: Date.now()
+      const storageKey = "pomodoroTimer.v1";
+      const modes = {
+        work: { label: "专注", setting: "workMinutes" },
+        short: { label: "短休息", setting: "shortMinutes" },
+        long: { label: "长休息", setting: "longMinutes" }
+      };
+
+      const defaultState = () => ({
+        mode: "work",
+        isRunning: false,
+        remainingSeconds: 25 * 60,
+        settings: {
+          workMinutes: 25,
+          shortMinutes: 5,
+          longMinutes: 15,
+          longBreakEvery: 4
+        },
+        completedPomodoros: 0,
+        focusSeconds: 0,
+        tasks: []
       });
 
       const dom = {
-        list: document.querySelector('[data-testid="notes-list"]'),
-        search: document.querySelector('[data-testid="search"]'),
-        newNote: document.querySelector('[data-testid="new-note"]'),
-        deleteNote: document.querySelector('[data-testid="delete-note"]'),
-        title: document.querySelector('[data-testid="title-input"]'),
-        body: document.querySelector('[data-testid="body-input"]'),
+        time: document.querySelector('[data-testid="time"]'),
         status: document.querySelector('[data-testid="status"]'),
-        noteCount: document.querySelector('[data-testid="note-count"]'),
-        form: document.querySelector('[data-testid="editor-form"]'),
-        empty: document.querySelector('[data-testid="empty-state"]')
+        ring: document.querySelector('[data-testid="progress-ring"]'),
+        startPause: document.querySelector('[data-testid="start-pause"]'),
+        reset: document.querySelector('[data-testid="reset"]'),
+        skip: document.querySelector('[data-testid="skip"]'),
+        modeTabs: [...document.querySelectorAll("[data-mode]")],
+        cycleLabel: document.querySelector('[data-testid="cycle-label"]'),
+        completedCount: document.querySelector('[data-testid="completed-count"]'),
+        focusMinutes: document.querySelector('[data-testid="focus-minutes"]'),
+        doneCount: document.querySelector('[data-testid="done-count"]'),
+        focusTask: document.querySelector('[data-testid="focus-task"]'),
+        settingWork: document.querySelector('[data-testid="setting-work"]'),
+        settingShort: document.querySelector('[data-testid="setting-short"]'),
+        settingLong: document.querySelector('[data-testid="setting-long"]'),
+        taskForm: document.querySelector('[data-testid="task-form"]'),
+        taskInput: document.querySelector('[data-testid="task-input"]'),
+        taskList: document.querySelector('[data-testid="task-list"]'),
+        emptyTasks: document.querySelector('[data-testid="empty-tasks"]')
       };
 
-      const loadNotes = () => {
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+      const durationFor = (mode, settings = state.settings) =>
+        settings[modes[mode].setting] * 60;
+
+      const normalizeTask = (task) => ({
+        id: task.id || String(Date.now() + Math.random()),
+        title: String(task.title || "").trim() || "未命名任务",
+        done: Boolean(task.done),
+        active: Boolean(task.active)
+      });
+
+      const loadState = () => {
         try {
           const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
-          if (Array.isArray(saved) && saved.length) return saved;
+          if (!saved || typeof saved !== "object") return defaultState();
+          const next = defaultState();
+          next.settings = {
+            ...next.settings,
+            ...saved.settings
+          };
+          next.settings.workMinutes = clamp(Number(next.settings.workMinutes) || 25, 1, 180);
+          next.settings.shortMinutes = clamp(Number(next.settings.shortMinutes) || 5, 1, 60);
+          next.settings.longMinutes = clamp(Number(next.settings.longMinutes) || 15, 1, 90);
+          next.mode = modes[saved.mode] ? saved.mode : "work";
+          next.remainingSeconds = clamp(
+            Number(saved.remainingSeconds) || durationFor(next.mode, next.settings),
+            0,
+            durationFor(next.mode, next.settings)
+          );
+          next.completedPomodoros = Math.max(0, Number(saved.completedPomodoros) || 0);
+          next.focusSeconds = Math.max(0, Number(saved.focusSeconds) || 0);
+          next.tasks = Array.isArray(saved.tasks) ? saved.tasks.map(normalizeTask) : [];
+          next.isRunning = false;
+          return next;
         } catch (error) {
-          console.warn("笔记读取失败，已创建默认笔记。", error);
+          console.warn("番茄钟数据读取失败，已使用默认设置。", error);
+          return defaultState();
         }
-        return [{
-          id: "welcome",
-          title: "欢迎使用双栏笔记",
-          body: "左侧管理笔记，右侧编辑内容。所有修改会自动保存在当前浏览器中。",
-          updatedAt: Date.now()
-        }];
       };
 
-      let notes = loadNotes();
-      let selectedId = notes[0]?.id || null;
-      let query = "";
+      let state = loadState();
+      let intervalId = null;
 
-      const getSelected = () => notes.find((note) => note.id === selectedId) || null;
-      const persist = () => localStorage.setItem(storageKey, JSON.stringify(notes));
-      const formatDate = (timestamp) => new Intl.DateTimeFormat("zh-CN", {
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      }).format(timestamp);
-
-      const setStatus = (text) => {
-        dom.status.textContent = text;
+      const persist = () => {
+        localStorage.setItem(storageKey, JSON.stringify({ ...state, isRunning: false }));
       };
 
-      const filteredNotes = () => {
-        const keyword = query.trim().toLowerCase();
-        const sorted = [...notes].sort((a, b) => b.updatedAt - a.updatedAt);
-        if (!keyword) return sorted;
-        return sorted.filter((note) =>
-          `${note.title}\n${note.body}`.toLowerCase().includes(keyword)
+      const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainder = seconds % 60;
+        return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+      };
+
+      const activeTask = () => state.tasks.find((task) => task.active && !task.done)
+        || state.tasks.find((task) => !task.done)
+        || null;
+
+      const setActiveTask = (id) => {
+        state.tasks = state.tasks.map((task) => ({
+          ...task,
+          active: task.id === id
+        }));
+        persist();
+        render();
+      };
+
+      const stopTicker = () => {
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      };
+
+      const switchMode = (mode, shouldRun = false) => {
+        state.mode = mode;
+        state.remainingSeconds = durationFor(mode);
+        state.isRunning = shouldRun;
+        if (!shouldRun) stopTicker();
+        if (shouldRun) startTicker();
+        persist();
+        render();
+      };
+
+      const nextModeAfterCompletion = () => {
+        if (state.mode !== "work") return "work";
+        return state.completedPomodoros % state.settings.longBreakEvery === 0
+          ? "long"
+          : "short";
+      };
+
+      const completeCurrentSession = ({ countWork = true } = {}) => {
+        const completedMode = state.mode;
+        if (completedMode === "work" && countWork) {
+          state.completedPomodoros += 1;
+        }
+        const nextMode = nextModeAfterCompletion();
+        state.mode = nextMode;
+        state.remainingSeconds = durationFor(nextMode);
+        state.isRunning = false;
+        stopTicker();
+        persist();
+        render();
+        const message = completedMode === "work"
+          ? "这轮专注完成了，休息一下。"
+          : "休息结束，回到专注。";
+        dom.status.textContent = message;
+      };
+
+      const tick = (seconds = 1) => {
+        const wholeSeconds = Math.max(0, Math.floor(seconds));
+        for (let index = 0; index < wholeSeconds; index += 1) {
+          if (!state.isRunning) break;
+          if (state.mode === "work") state.focusSeconds += 1;
+          state.remainingSeconds = Math.max(0, state.remainingSeconds - 1);
+          if (state.remainingSeconds === 0) {
+            completeCurrentSession();
+            return;
+          }
+        }
+        persist();
+        render();
+      };
+
+      const startTicker = () => {
+        stopTicker();
+        intervalId = setInterval(() => tick(1), 1000);
+      };
+
+      const toggleRunning = () => {
+        state.isRunning = !state.isRunning;
+        if (state.isRunning) {
+          startTicker();
+        } else {
+          stopTicker();
+        }
+        persist();
+        render();
+      };
+
+      const resetCurrent = () => {
+        state.isRunning = false;
+        state.remainingSeconds = durationFor(state.mode);
+        stopTicker();
+        persist();
+        render();
+      };
+
+      const addTask = (title) => {
+        const trimmed = title.trim();
+        if (!trimmed) return;
+        const hasActive = state.tasks.some((task) => task.active && !task.done);
+        state.tasks.push({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+          title: trimmed,
+          done: false,
+          active: !hasActive
+        });
+        dom.taskInput.value = "";
+        persist();
+        render();
+      };
+
+      const toggleTaskDone = (id) => {
+        state.tasks = state.tasks.map((task) => task.id === id
+          ? { ...task, done: !task.done, active: task.done ? task.active : false }
+          : task
         );
+        if (!state.tasks.some((task) => task.active && !task.done)) {
+          const nextTask = state.tasks.find((task) => !task.done);
+          if (nextTask) nextTask.active = true;
+        }
+        persist();
+        render();
       };
 
-      const renderList = () => {
-        const visibleNotes = filteredNotes();
-        const isSearching = Boolean(query.trim());
-        dom.noteCount.textContent = isSearching
-          ? `共 ${notes.length} 条笔记，当前匹配 ${visibleNotes.length} 条`
-          : `共 ${notes.length} 条笔记`;
-        dom.list.innerHTML = "";
+      const removeTask = (id) => {
+        const removedWasActive = state.tasks.some((task) => task.id === id && task.active);
+        state.tasks = state.tasks.filter((task) => task.id !== id);
+        if (removedWasActive) {
+          const nextTask = state.tasks.find((task) => !task.done);
+          if (nextTask) nextTask.active = true;
+        }
+        persist();
+        render();
+      };
 
-        if (!visibleNotes.length) {
-          const empty = document.createElement("p");
-          empty.className = "note-preview";
-          empty.textContent = "没有匹配的笔记";
-          dom.list.append(empty);
+      const updateSetting = (key, value) => {
+        const limits = {
+          workMinutes: [1, 180],
+          shortMinutes: [1, 60],
+          longMinutes: [1, 90]
+        };
+        const [min, max] = limits[key];
+        state.settings[key] = clamp(Number(value) || min, min, max);
+        if (modes[state.mode].setting === key) {
+          resetCurrent();
           return;
         }
+        persist();
+        render();
+      };
 
-        visibleNotes.forEach((note) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = `note-item${note.id === selectedId ? " active" : ""}`;
-          button.dataset.noteId = note.id;
-          button.setAttribute("aria-label", `打开笔记：${note.title || "未命名笔记"}`);
+      const renderTasks = () => {
+        dom.taskList.innerHTML = "";
+        dom.emptyTasks.classList.toggle("hidden", state.tasks.length > 0);
+
+        state.tasks.forEach((task) => {
+          const item = document.createElement("li");
+          item.className = `task-item${task.done ? " done" : ""}${task.active ? " active" : ""}`;
+          item.dataset.taskId = task.id;
+
+          const toggle = document.createElement("button");
+          toggle.type = "button";
+          toggle.className = "task-toggle";
+          toggle.dataset.action = "toggle";
+          toggle.setAttribute("aria-label", task.done ? "标记为未完成" : "标记为完成");
+          toggle.textContent = task.done ? "✓" : "";
 
           const title = document.createElement("div");
-          title.className = "note-title";
-          title.textContent = note.title || "未命名笔记";
+          title.className = "task-title";
+          title.textContent = task.title;
 
-          const preview = document.createElement("div");
-          preview.className = "note-preview";
-          preview.textContent = note.body || "暂无内容";
+          const actions = document.createElement("div");
+          actions.className = "task-actions";
 
-          const date = document.createElement("div");
-          date.className = "note-date";
-          date.textContent = `更新于 ${formatDate(note.updatedAt)}`;
+          const focus = document.createElement("button");
+          focus.type = "button";
+          focus.className = "icon-button";
+          focus.dataset.action = "focus";
+          focus.disabled = task.done;
+          focus.title = "设为当前任务";
+          focus.setAttribute("aria-label", "设为当前任务");
+          focus.textContent = ">";
 
-          button.append(title, preview, date);
-          dom.list.append(button);
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "icon-button";
+          remove.dataset.action = "remove";
+          remove.title = "删除任务";
+          remove.setAttribute("aria-label", "删除任务");
+          remove.textContent = "×";
+
+          actions.append(focus, remove);
+          item.append(toggle, title, actions);
+          dom.taskList.append(item);
         });
       };
 
-      const renderEditor = () => {
-        const note = getSelected();
-        const hasNote = Boolean(note);
-
-        dom.form.classList.toggle("hidden", !hasNote);
-        dom.empty.classList.toggle("hidden", hasNote);
-        dom.deleteNote.disabled = !hasNote;
-
-        if (!note) {
-          dom.title.value = "";
-          dom.body.value = "";
-          setStatus("没有选中的笔记");
-          return;
-        }
-
-        if (document.activeElement !== dom.title) dom.title.value = note.title;
-        if (document.activeElement !== dom.body) dom.body.value = note.body;
-        setStatus("已自动保存");
-      };
-
       const render = () => {
-        renderList();
-        renderEditor();
+        const total = durationFor(state.mode);
+        const elapsed = total - state.remainingSeconds;
+        const degrees = total > 0 ? (elapsed / total) * 360 : 0;
+        const active = activeTask();
+
+        dom.time.textContent = formatTime(state.remainingSeconds);
+        dom.ring.style.setProperty("--progress", `${degrees}deg`);
+        dom.startPause.textContent = state.isRunning ? "暂停" : "开始";
+        dom.status.textContent = state.isRunning
+          ? `${modes[state.mode].label}进行中。`
+          : `准备开始${modes[state.mode].label}。`;
+        dom.cycleLabel.textContent = `第 ${state.completedPomodoros + 1} 轮`;
+        dom.completedCount.textContent = String(state.completedPomodoros);
+        dom.focusMinutes.textContent = String(Math.floor(state.focusSeconds / 60));
+        dom.doneCount.textContent = String(state.tasks.filter((task) => task.done).length);
+        dom.focusTask.textContent = active
+          ? active.title
+          : "还没有任务，添加一个要完成的小目标。";
+
+        dom.settingWork.value = state.settings.workMinutes;
+        dom.settingShort.value = state.settings.shortMinutes;
+        dom.settingLong.value = state.settings.longMinutes;
+
+        dom.modeTabs.forEach((tab) => {
+          tab.setAttribute("aria-pressed", String(tab.dataset.mode === state.mode));
+        });
+
+        renderTasks();
       };
 
-      const selectNote = (id) => {
-        selectedId = id;
-        render();
-      };
-
-      const saveCurrentNote = () => {
-        const note = getSelected();
-        if (!note) return;
-        note.title = dom.title.value.trim() || "未命名笔记";
-        note.body = dom.body.value;
-        note.updatedAt = Date.now();
-        persist();
-        setStatus("已自动保存");
-        renderList();
-      };
-
-      const createNote = () => {
-        const note = emptyNote();
-        notes.unshift(note);
-        selectedId = note.id;
-        persist();
-        render();
-        dom.title.focus();
-        dom.title.select();
-      };
-
-      const deleteCurrentNote = () => {
-        if (!selectedId) return;
-        const index = notes.findIndex((note) => note.id === selectedId);
-        notes = notes.filter((note) => note.id !== selectedId);
-        selectedId = notes[index]?.id || notes[index - 1]?.id || notes[0]?.id || null;
-        persist();
-        render();
-      };
-
-      dom.newNote.addEventListener("click", createNote);
-      dom.deleteNote.addEventListener("click", deleteCurrentNote);
-      dom.title.addEventListener("input", saveCurrentNote);
-      dom.body.addEventListener("input", saveCurrentNote);
-      dom.search.addEventListener("input", (event) => {
-        query = event.target.value;
-        renderList();
+      dom.startPause.addEventListener("click", toggleRunning);
+      dom.reset.addEventListener("click", resetCurrent);
+      dom.skip.addEventListener("click", () => completeCurrentSession({ countWork: false }));
+      dom.modeTabs.forEach((tab) => {
+        tab.addEventListener("click", () => switchMode(tab.dataset.mode, false));
       });
-      dom.list.addEventListener("click", (event) => {
-        const item = event.target.closest("[data-note-id]");
-        if (item) selectNote(item.dataset.noteId);
+      dom.settingWork.addEventListener("input", (event) =>
+        updateSetting("workMinutes", event.target.value)
+      );
+      dom.settingShort.addEventListener("input", (event) =>
+        updateSetting("shortMinutes", event.target.value)
+      );
+      dom.settingLong.addEventListener("input", (event) =>
+        updateSetting("longMinutes", event.target.value)
+      );
+      dom.taskForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        addTask(dom.taskInput.value);
       });
-      dom.form.addEventListener("submit", (event) => event.preventDefault());
+      dom.taskList.addEventListener("click", (event) => {
+        const item = event.target.closest("[data-task-id]");
+        const action = event.target.closest("[data-action]");
+        if (!item || !action) return;
+        if (action.dataset.action === "toggle") toggleTaskDone(item.dataset.taskId);
+        if (action.dataset.action === "focus") setActiveTask(item.dataset.taskId);
+        if (action.dataset.action === "remove") removeTask(item.dataset.taskId);
+      });
 
-      window.__notesApp = {
-        get notes() {
-          return notes.map((note) => ({ ...note }));
+      window.__pomodoroApp = {
+        get state() {
+          return JSON.parse(JSON.stringify(state));
         },
-        get selectedId() {
-          return selectedId;
-        },
-        resetForTest(seedNotes) {
-          notes = seedNotes.map((note) => ({ ...note }));
-          selectedId = notes[0]?.id || null;
-          query = "";
-          dom.search.value = "";
+        resetForTest(seed = {}) {
+          stopTicker();
+          state = {
+            ...defaultState(),
+            ...seed,
+            settings: {
+              ...defaultState().settings,
+              ...(seed.settings || {})
+            },
+            tasks: Array.isArray(seed.tasks) ? seed.tasks.map(normalizeTask) : []
+          };
+          if (!modes[state.mode]) state.mode = "work";
+          state.remainingSeconds = typeof seed.remainingSeconds === "number"
+            ? seed.remainingSeconds
+            : durationFor(state.mode);
+          state.isRunning = Boolean(seed.isRunning);
+          if (state.isRunning) startTicker();
           persist();
           render();
         },
+        tick,
         storageKey
       };
 
