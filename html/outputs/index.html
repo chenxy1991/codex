@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>双栏笔记</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-weak: #e8f0ff;
+      --danger: #dc2626;
+      --shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(260px, 34%) 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+    }
+
+    .side-header {
+      display: grid;
+      gap: 14px;
+      padding: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .title-block {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .note-count {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .new-note {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .search {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px 12px;
+      color: var(--text);
+      outline: none;
+      background: #fbfcfe;
+    }
+
+    .search:focus,
+    .title-input:focus,
+    .body-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .notes-list {
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      overflow: auto;
+      padding: 14px;
+    }
+
+    .note-item {
+      display: grid;
+      gap: 6px;
+      width: 100%;
+      min-width: 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+    }
+
+    .note-item:hover {
+      background: #f3f6fb;
+    }
+
+    .note-item.active {
+      background: var(--primary-weak);
+      outline: 1px solid rgba(37, 99, 235, 0.18);
+    }
+
+    .note-title {
+      overflow: hidden;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .note-preview,
+    .note-date {
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .editor {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      padding: 28px;
+    }
+
+    .editor-panel {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .status {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .delete-note {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 88px;
+      border-radius: 8px;
+      padding: 9px 12px;
+      background: #fee2e2;
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .delete-note:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .editor-fields {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .title-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px 14px;
+      color: var(--text);
+      font-size: 22px;
+      font-weight: 750;
+      outline: none;
+    }
+
+    .body-input {
+      flex: 1;
+      width: 100%;
+      min-height: 300px;
+      resize: none;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--text);
+      line-height: 1.65;
+      outline: none;
+    }
+
+    .empty {
+      display: grid;
+      flex: 1;
+      place-items: center;
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        min-height: 42vh;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .editor {
+        min-height: 58vh;
+        padding: 16px;
+      }
+
+      .title-input {
+        font-size: 19px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="sidebar" aria-label="笔记列表">
+      <header class="side-header">
+        <div class="brand-row">
+          <div class="title-block">
+            <h1>我的笔记</h1>
+            <div class="note-count" data-testid="note-count">共 0 条笔记</div>
+          </div>
+          <button class="new-note" type="button" data-testid="new-note" aria-label="新建笔记">+</button>
+        </div>
+        <input class="search" data-testid="search" type="search" placeholder="搜索标题或内容">
+      </header>
+      <section class="notes-list" data-testid="notes-list" aria-live="polite"></section>
+    </aside>
+
+    <section class="editor" aria-label="笔记内容">
+      <div class="editor-panel">
+        <div class="editor-toolbar">
+          <div class="status" data-testid="status">已自动保存</div>
+          <button class="delete-note" type="button" data-testid="delete-note">删除</button>
+        </div>
+        <form class="editor-fields" data-testid="editor-form">
+          <input class="title-input" data-testid="title-input" type="text" placeholder="笔记标题" autocomplete="off">
+          <textarea class="body-input" data-testid="body-input" placeholder="开始记录..."></textarea>
+        </form>
+        <div class="empty hidden" data-testid="empty-state">没有选中的笔记，点击左上角 + 新建一条。</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const storageKey = "twoPaneNotes.v1";
+      const emptyNote = () => ({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        title: "未命名笔记",
+        body: "",
+        updatedAt: Date.now()
+      });
+
+      const dom = {
+        list: document.querySelector('[data-testid="notes-list"]'),
+        search: document.querySelector('[data-testid="search"]'),
+        newNote: document.querySelector('[data-testid="new-note"]'),
+        deleteNote: document.querySelector('[data-testid="delete-note"]'),
+        title: document.querySelector('[data-testid="title-input"]'),
+        body: document.querySelector('[data-testid="body-input"]'),
+        status: document.querySelector('[data-testid="status"]'),
+        noteCount: document.querySelector('[data-testid="note-count"]'),
+        form: document.querySelector('[data-testid="editor-form"]'),
+        empty: document.querySelector('[data-testid="empty-state"]')
+      };
+
+      const loadNotes = () => {
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+          if (Array.isArray(saved) && saved.length) return saved;
+        } catch (error) {
+          console.warn("笔记读取失败，已创建默认笔记。", error);
+        }
+        return [{
+          id: "welcome",
+          title: "欢迎使用双栏笔记",
+          body: "左侧管理笔记，右侧编辑内容。所有修改会自动保存在当前浏览器中。",
+          updatedAt: Date.now()
+        }];
+      };
+
+      let notes = loadNotes();
+      let selectedId = notes[0]?.id || null;
+      let query = "";
+
+      const getSelected = () => notes.find((note) => note.id === selectedId) || null;
+      const persist = () => localStorage.setItem(storageKey, JSON.stringify(notes));
+      const formatDate = (timestamp) => new Intl.DateTimeFormat("zh-CN", {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(timestamp);
+
+      const setStatus = (text) => {
+        dom.status.textContent = text;
+      };
+
+      const filteredNotes = () => {
+        const keyword = query.trim().toLowerCase();
+        const sorted = [...notes].sort((a, b) => b.updatedAt - a.updatedAt);
+        if (!keyword) return sorted;
+        return sorted.filter((note) =>
+          `${note.title}\n${note.body}`.toLowerCase().includes(keyword)
+        );
+      };
+
+      const renderList = () => {
+        const visibleNotes = filteredNotes();
+        const isSearching = Boolean(query.trim());
+        dom.noteCount.textContent = isSearching
+          ? `共 ${notes.length} 条笔记，当前匹配 ${visibleNotes.length} 条`
+          : `共 ${notes.length} 条笔记`;
+        dom.list.innerHTML = "";
+
+        if (!visibleNotes.length) {
+          const empty = document.createElement("p");
+          empty.className = "note-preview";
+          empty.textContent = "没有匹配的笔记";
+          dom.list.append(empty);
+          return;
+        }
+
+        visibleNotes.forEach((note) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `note-item${note.id === selectedId ? " active" : ""}`;
+          button.dataset.noteId = note.id;
+          button.setAttribute("aria-label", `打开笔记：${note.title || "未命名笔记"}`);
+
+          const title = document.createElement("div");
+          title.className = "note-title";
+          title.textContent = note.title || "未命名笔记";
+
+          const preview = document.createElement("div");
+          preview.className = "note-preview";
+          preview.textContent = note.body || "暂无内容";
+
+          const date = document.createElement("div");
+          date.className = "note-date";
+          date.textContent = `更新于 ${formatDate(note.updatedAt)}`;
+
+          button.append(title, preview, date);
+          dom.list.append(button);
+        });
+      };
+
+      const renderEditor = () => {
+        const note = getSelected();
+        const hasNote = Boolean(note);
+
+        dom.form.classList.toggle("hidden", !hasNote);
+        dom.empty.classList.toggle("hidden", hasNote);
+        dom.deleteNote.disabled = !hasNote;
+
+        if (!note) {
+          dom.title.value = "";
+          dom.body.value = "";
+          setStatus("没有选中的笔记");
+          return;
+        }
+
+        if (document.activeElement !== dom.title) dom.title.value = note.title;
+        if (document.activeElement !== dom.body) dom.body.value = note.body;
+        setStatus("已自动保存");
+      };
+
+      const render = () => {
+        renderList();
+        renderEditor();
+      };
+
+      const selectNote = (id) => {
+        selectedId = id;
+        render();
+      };
+
+      const saveCurrentNote = () => {
+        const note = getSelected();
+        if (!note) return;
+        note.title = dom.title.value.trim() || "未命名笔记";
+        note.body = dom.body.value;
+        note.updatedAt = Date.now();
+        persist();
+        setStatus("已自动保存");
+        renderList();
+      };
+
+      const createNote = () => {
+        const note = emptyNote();
+        notes.unshift(note);
+        selectedId = note.id;
+        persist();
+        render();
+        dom.title.focus();
+        dom.title.select();
+      };
+
+      const deleteCurrentNote = () => {
+        if (!selectedId) return;
+        const index = notes.findIndex((note) => note.id === selectedId);
+        notes = notes.filter((note) => note.id !== selectedId);
+        selectedId = notes[index]?.id || notes[index - 1]?.id || notes[0]?.id || null;
+        persist();
+        render();
+      };
+
+      dom.newNote.addEventListener("click", createNote);
+      dom.deleteNote.addEventListener("click", deleteCurrentNote);
+      dom.title.addEventListener("input", saveCurrentNote);
+      dom.body.addEventListener("input", saveCurrentNote);
+      dom.search.addEventListener("input", (event) => {
+        query = event.target.value;
+        renderList();
+      });
+      dom.list.addEventListener("click", (event) => {
+        const item = event.target.closest("[data-note-id]");
+        if (item) selectNote(item.dataset.noteId);
+      });
+      dom.form.addEventListener("submit", (event) => event.preventDefault());
+
+      window.__notesApp = {
+        get notes() {
+          return notes.map((note) => ({ ...note }));
+        },
+        get selectedId() {
+          return selectedId;
+        },
+        resetForTest(seedNotes) {
+          notes = seedNotes.map((note) => ({ ...note }));
+          selectedId = notes[0]?.id || null;
+          query = "";
+          dom.search.value = "";
+          persist();
+          render();
+        },
+        storageKey
+      };
+
+      render();
+    })();
+  </script>
+</body>
+</html>
