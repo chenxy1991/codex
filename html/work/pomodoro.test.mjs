@@ -20,6 +20,10 @@ try {
   assert.equal(await page.getByTestId("theme-toggle").inputValue(), "dark");
   assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
 
+  await page.getByTestId("theme-toggle").selectOption("transparent");
+  assert.equal(await page.getByTestId("theme-toggle").inputValue(), "transparent");
+  assert.equal(await page.locator("html").getAttribute("data-theme"), "transparent");
+
   await page.getByTestId("task-input").fill("写完番茄钟测试");
   await page.getByTestId("add-task").click();
   await assertText(page, "focus-task", "写完番茄钟测试");

@@ -256,6 +256,12 @@ assert.equal(byTestId("theme-toggle").value, "dark");
 assert.equal(document.documentElement.getAttribute("data-theme"), "dark");
 assert.equal(context.window.__pomodoroApp.state.theme, "dark");
 
+dispatchInput("theme-toggle", "transparent");
+byTestId("theme-toggle").dispatch("change", byTestId("theme-toggle"));
+assert.equal(byTestId("theme-toggle").value, "transparent");
+assert.equal(document.documentElement.getAttribute("data-theme"), "transparent");
+assert.equal(context.window.__pomodoroApp.state.theme, "transparent");
+
 dispatchInput("task-input", "写完番茄钟测试");
 byTestId("task-form").dispatch("submit", byTestId("task-form"));
 assert.equal(byTestId("focus-task").textContent, "写完番茄钟测试");
