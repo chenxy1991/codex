@@ -117,6 +117,8 @@ class Document {
   constructor() {
     this.elements = [];
     this.activeElement = null;
+    this.documentElement = new Element("html", this);
+    this.register(this.documentElement);
   }
 
   createElement(tagName) {
@@ -184,6 +186,7 @@ const testIds = [
   "setting-work",
   "setting-short",
   "setting-long",
+  "theme-toggle",
   "task-form",
   "task-input",
   "task-list",
@@ -191,7 +194,13 @@ const testIds = [
 ];
 
 for (const id of testIds) {
-  const tag = id.startsWith("setting") || id === "task-input" ? "input" : id === "task-list" ? "ul" : "div";
+  const tag = id === "theme-toggle"
+    ? "select"
+    : id.startsWith("setting") || id === "task-input"
+      ? "input"
+      : id === "task-list"
+        ? "ul"
+        : "div";
   const element = document.createElement(tag);
   element.setAttribute("data-testid", id);
 }
@@ -238,6 +247,14 @@ const dispatchInput = (id, value) => {
 
 assert.equal(byTestId("time").textContent, "25:00");
 assert.equal(byTestId("status").textContent, "准备开始专注。");
+assert.equal(byTestId("theme-toggle").value, "light");
+assert.equal(document.documentElement.getAttribute("data-theme"), "light");
+
+dispatchInput("theme-toggle", "dark");
+byTestId("theme-toggle").dispatch("change", byTestId("theme-toggle"));
+assert.equal(byTestId("theme-toggle").value, "dark");
+assert.equal(document.documentElement.getAttribute("data-theme"), "dark");
+assert.equal(context.window.__pomodoroApp.state.theme, "dark");
 
 dispatchInput("task-input", "写完番茄钟测试");
 byTestId("task-form").dispatch("submit", byTestId("task-form"));

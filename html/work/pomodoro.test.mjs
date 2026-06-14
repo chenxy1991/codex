@@ -13,6 +13,12 @@ try {
   await assertText(page, "time", "25:00");
   await assertText(page, "status", "准备开始专注。");
   await assertText(page, "completed-count", "0");
+  assert.equal(await page.getByTestId("theme-toggle").inputValue(), "light");
+  assert.equal(await page.locator("html").getAttribute("data-theme"), "light");
+
+  await page.getByTestId("theme-toggle").selectOption("dark");
+  assert.equal(await page.getByTestId("theme-toggle").inputValue(), "dark");
+  assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
 
   await page.getByTestId("task-input").fill("写完番茄钟测试");
   await page.getByTestId("add-task").click();

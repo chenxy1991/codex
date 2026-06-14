@@ -9,9 +9,20 @@
       color-scheme: light;
       --bg: #f5f7fb;
       --panel: #ffffff;
+      --panel-glass: rgba(255, 255, 255, 0.78);
+      --panel-border: rgba(255, 255, 255, 0.72);
       --text: #162033;
       --muted: #657086;
       --line: #dfe5ef;
+      --soft: #eef2f7;
+      --soft-panel: #fbfcfe;
+      --field-bg: #ffffff;
+      --ring-track: #ebeff5;
+      --glow-a: rgba(198, 235, 222, 0.74);
+      --glow-b: rgba(215, 230, 255, 0.76);
+      --glow-c: rgba(255, 231, 226, 0.58);
+      --body-overlay: linear-gradient(rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.08));
+      --grid-line: rgba(22, 32, 51, 0.026);
       --primary: #e5484d;
       --primary-dark: #c7353b;
       --primary-weak: #fff0f1;
@@ -26,6 +37,38 @@
       --ambient-shadow: 0 24px 70px rgba(31, 73, 61, 0.13);
     }
 
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #111827;
+      --panel: #192233;
+      --panel-glass: rgba(25, 34, 51, 0.82);
+      --panel-border: rgba(148, 163, 184, 0.2);
+      --text: #f4f7fb;
+      --muted: #a9b4c5;
+      --line: #334155;
+      --soft: #243047;
+      --soft-panel: #202b3f;
+      --field-bg: #111827;
+      --ring-track: #26344c;
+      --glow-a: rgba(33, 91, 80, 0.34);
+      --glow-b: rgba(55, 76, 121, 0.38);
+      --glow-c: rgba(115, 52, 57, 0.26);
+      --body-overlay: linear-gradient(rgba(15, 23, 42, 0.2), rgba(15, 23, 42, 0.58));
+      --grid-line: rgba(226, 232, 240, 0.035);
+      --primary: #ff6b70;
+      --primary-dark: #f05258;
+      --primary-weak: #3b222b;
+      --accent: #7aa7ff;
+      --focus-bg: #172d2a;
+      --focus-border: #24514a;
+      --focus-label: #8fd2bd;
+      --focus-text: #d6f6ec;
+      --success: #70d68a;
+      --warning: #f0b15d;
+      --shadow: 0 18px 48px rgba(0, 0, 0, 0.3);
+      --ambient-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -36,10 +79,10 @@
       min-height: 100vh;
       overflow-x: hidden;
       background:
-        radial-gradient(circle at 12% 12%, rgba(198, 235, 222, 0.74) 0, transparent 32%),
-        radial-gradient(circle at 86% 8%, rgba(215, 230, 255, 0.76) 0, transparent 34%),
-        radial-gradient(circle at 50% 92%, rgba(255, 231, 226, 0.58) 0, transparent 36%),
-        linear-gradient(135deg, #fbfcff 0%, #f4f8fb 45%, #eef7f2 100%);
+        radial-gradient(circle at 12% 12%, var(--glow-a) 0, transparent 32%),
+        radial-gradient(circle at 86% 8%, var(--glow-b) 0, transparent 34%),
+        radial-gradient(circle at 50% 92%, var(--glow-c) 0, transparent 36%),
+        linear-gradient(135deg, var(--panel) 0%, var(--bg) 45%, var(--focus-bg) 100%);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
         "Microsoft YaHei", sans-serif;
@@ -51,11 +94,11 @@
       pointer-events: none;
       content: "";
       background:
-        linear-gradient(rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.08)),
+        var(--body-overlay),
         repeating-linear-gradient(
           90deg,
-          rgba(22, 32, 51, 0.026) 0,
-          rgba(22, 32, 51, 0.026) 1px,
+          var(--grid-line) 0,
+          var(--grid-line) 1px,
           transparent 1px,
           transparent 82px
         );
@@ -84,9 +127,9 @@
 
     .timer-panel,
     .side-panel {
-      border: 1px solid rgba(255, 255, 255, 0.72);
+      border: 1px solid var(--panel-border);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.78);
+      background: var(--panel-glass);
       box-shadow: var(--ambient-shadow);
       backdrop-filter: blur(18px);
     }
@@ -104,6 +147,36 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: 18px;
+    }
+
+    .topbar-actions {
+      display: grid;
+      justify-items: end;
+      gap: 10px;
+      min-width: 148px;
+    }
+
+    .theme-field {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .theme-select {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--field-bg);
+      color: var(--text);
+      padding: 0 10px;
+      outline: none;
+    }
+
+    .theme-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.13);
     }
 
     .title-block {
@@ -147,7 +220,7 @@
       width: min(100%, 460px);
       margin-top: 30px;
       border-radius: 8px;
-      background: #eef2f7;
+      background: var(--soft);
       padding: 6px;
     }
 
@@ -180,8 +253,8 @@
       aspect-ratio: 1;
       border-radius: 50%;
       background:
-        conic-gradient(var(--primary) var(--progress, 0deg), #ebeff5 0),
-        #ebeff5;
+        conic-gradient(var(--primary) var(--progress, 0deg), var(--ring-track) 0),
+        var(--ring-track);
     }
 
     .clock-face {
@@ -220,7 +293,7 @@
       min-height: 46px;
       border-radius: 8px;
       padding: 0 18px;
-      background: #eef2f7;
+      background: var(--soft);
       color: var(--text);
       font-weight: 800;
     }
@@ -293,7 +366,7 @@
       gap: 5px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #fbfcfe;
+      background: var(--soft-panel);
       padding: 12px;
     }
 
@@ -314,7 +387,7 @@
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: white;
+      background: var(--field-bg);
       color: var(--text);
       outline: none;
     }
@@ -355,7 +428,7 @@
       gap: 10px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #fbfcfe;
+      background: var(--soft-panel);
       padding: 10px;
     }
 
@@ -370,7 +443,7 @@
       width: 28px;
       height: 28px;
       border-radius: 8px;
-      background: #e8edf5;
+      background: var(--soft);
       color: var(--muted);
       font-weight: 900;
     }
@@ -402,7 +475,7 @@
       width: 32px;
       height: 32px;
       border-radius: 8px;
-      background: #eef2f7;
+      background: var(--soft);
       color: var(--muted);
       font-weight: 900;
     }
@@ -440,6 +513,11 @@
         display: grid;
       }
 
+      .topbar-actions {
+        justify-items: start;
+        width: 100%;
+      }
+
       .stats-grid,
       .settings-grid {
         grid-template-columns: 1fr;
@@ -460,7 +538,16 @@
             <h1>番茄钟</h1>
             <div class="subtitle">专注一段时间，休息一下，再继续。默认 25 分钟专注、5 分钟短休息、15 分钟长休息。</div>
           </div>
-          <div class="stats" data-testid="cycle-label">第 1 轮</div>
+          <div class="topbar-actions">
+            <label class="theme-field" for="theme-toggle">
+              主题
+              <select class="theme-select" id="theme-toggle" data-testid="theme-toggle" aria-label="切换主题">
+                <option value="light">浅色模式</option>
+                <option value="dark">深色模式</option>
+              </select>
+            </label>
+            <div class="stats" data-testid="cycle-label">第 1 轮</div>
+          </div>
         </header>
 
         <nav class="mode-tabs" aria-label="计时模式">
@@ -551,6 +638,7 @@
 
       const defaultState = () => ({
         mode: "work",
+        theme: "light",
         isRunning: false,
         remainingSeconds: 25 * 60,
         settings: {
@@ -580,6 +668,7 @@
         settingWork: document.querySelector('[data-testid="setting-work"]'),
         settingShort: document.querySelector('[data-testid="setting-short"]'),
         settingLong: document.querySelector('[data-testid="setting-long"]'),
+        themeToggle: document.querySelector('[data-testid="theme-toggle"]'),
         taskForm: document.querySelector('[data-testid="task-form"]'),
         taskInput: document.querySelector('[data-testid="task-input"]'),
         taskList: document.querySelector('[data-testid="task-list"]'),
@@ -610,6 +699,7 @@
           next.settings.shortMinutes = clamp(Number(next.settings.shortMinutes) || 5, 1, 60);
           next.settings.longMinutes = clamp(Number(next.settings.longMinutes) || 15, 1, 90);
           next.mode = modes[saved.mode] ? saved.mode : "work";
+          next.theme = saved.theme === "dark" ? "dark" : "light";
           next.remainingSeconds = clamp(
             Number(saved.remainingSeconds) || durationFor(next.mode, next.settings),
             0,
@@ -788,6 +878,12 @@
         render();
       };
 
+      const updateTheme = (theme) => {
+        state.theme = theme === "dark" ? "dark" : "light";
+        persist();
+        render();
+      };
+
       const renderTasks = () => {
         dom.taskList.innerHTML = "";
         dom.emptyTasks.classList.toggle("hidden", state.tasks.length > 0);
@@ -857,6 +953,8 @@
         dom.settingWork.value = state.settings.workMinutes;
         dom.settingShort.value = state.settings.shortMinutes;
         dom.settingLong.value = state.settings.longMinutes;
+        dom.themeToggle.value = state.theme;
+        document.documentElement.setAttribute("data-theme", state.theme);
 
         dom.modeTabs.forEach((tab) => {
           tab.setAttribute("aria-pressed", String(tab.dataset.mode === state.mode));
@@ -880,6 +978,7 @@
       dom.settingLong.addEventListener("input", (event) =>
         updateSetting("longMinutes", event.target.value)
       );
+      dom.themeToggle.addEventListener("change", (event) => updateTheme(event.target.value));
       dom.taskForm.addEventListener("submit", (event) => {
         event.preventDefault();
         addTask(dom.taskInput.value);
@@ -909,6 +1008,7 @@
             tasks: Array.isArray(seed.tasks) ? seed.tasks.map(normalizeTask) : []
           };
           if (!modes[state.mode]) state.mode = "work";
+          state.theme = seed.theme === "dark" ? "dark" : "light";
           state.remainingSeconds = typeof seed.remainingSeconds === "number"
             ? seed.remainingSeconds
             : durationFor(state.mode);
